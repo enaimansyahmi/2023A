@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset=utf-8>
+	<meta content="width=device-width,minimum-scale=1" name=viewport>
+	<meta content="JUPEM - GFOS" name=author>
+	<meta content="A Simple GeoJSON data editor." name=description>
+	<title>JUPEM | 2023A</title>
+	<link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A==" crossorigin="" />
+	<link rel="stylesheet" href="https://unpkg.com/@geoman-io/leaflet-geoman-free@2.3.0/dist/leaflet-geoman.css" />
+	<link rel="stylesheet" href="assets/style.css" />
+	<link rel="icon" type="image/png" href="assets/logo1.png" />
+</head>
+<body>
+<div id="sidebar">
+	<img src="assets/logo.png" style="height:150px;display:block;margin:auto;margin-top:5px;">
+	<div style="text-align:center;padding:16px 0;">
+		<div class="sponsor-link">
+			<a href="#" target="_blank">Github Page</a>
+		</div>
+		<button id="new-fc" class="btn blue-btn">New GeoJSON</button>
+		<button id="import-fc" class="btn blue-btn">Import GeoJSON</button>
+	</div>
+	<div id="layerBox"></div>
+</div>
+<div id="map"></div>
+<!-- LAT LNG PANE -->
+<div id="lat-lng-pane"></div>
+<!-- EDIT PANE -->
+<div id="edit-pane">
+	<div id="edit-pane-title" class="modal-head"></div>
+	<div style="margin:16px;">
+		<button id="save-feature" class="btn green-btn" title="Save Edits">Save</button>
+		<button id="close-edit-pane" class="btn blue-btn" title="Close and Don't Save Edits">Cancel</button>
+		<button id="delete-feature" class="btn red-btn" title="Delete Feature">Delete</button>
+	</div>
+	<div id="attribute-pane-container">
+		<ul id="attribute-pane"></ul>
+	</div>
+</div>
+<!-- MODAL NEW FEATURE COLLECTION -->
+<div id="new-fc-modal" class="modal">
+	<div class="modal-body">
+		<div class="modal-head">Create New GeoJSON Feature Collection</div>
+		<div class="modal-content">
+			<label>Name</label>
+			<input type="text" id="new-fc-name" placeholder="Enter a name for your GeoJSON Feature Collection">
+			<label>Geometry Type</label>
+			    <select id="geo-type" name="geo-type">
+					<option value="Polygon">Polygon</option>
+					<option value="LineString">LineString</option>
+					<option value="Point">Point</option>
+				</select>
+			<label>Properties (Optional)</label>
+			<div id="prop-list">
+				<input type="text" placeholder="Enter a property name">
+				<input type="text" placeholder="Enter a property name">
+			</div>
+			<button class="btn blue-btn" id="add-property">Add Property</button>
+		    <button class="btn red-btn close-modal">Cancel</button>
+		    <button class="btn green-btn" id="create-new-fc">Create Feature Collection</button>
+		</div>
+	</div>
+</div>
+<!-- MODAL UPLOAD GEOJSON -->
+<div class="modal" id="import-file-modal">
+	<div class="modal-body">
+		<div class="modal-head">Import GeoJSON</div>
+		<div class="modal-content">
+			<label>Browse for file(s)</label>
+			<input type="file" class="geojson-file-input" accept=".json,.geojson" multiple>
+		    <button class="btn red-btn close-modal">Cancel</button>
+		    <button class="btn green-btn" id="add-geojson-map">Add GeoJSON to Map</button>
+		</div>
+	</div>
+</div>
+<!-- MODAL SETTINGS -->
+<div class="modal" id="settings-modal">
+	<div class="modal-body">
+		<div class="modal-head"></div>
+		<div class="modal-content">
+			<label>Rename GeoJSON Feature Collection</label>
+			<input type="text" id="rename-fc" placeholder="Enter a name for your GeoJSON Feature Collection">
+			<label>Properties</label><span style="float:right;color:#e74c3c;font-size:12px;">Warning: deletes property data for all features</span>
+			<div id="add-remove-prop-list"></div>
+			<button class="btn blue-btn" id="add-property-2" style="margin-bottom:16px;">Add Property</button>
+			<fieldset>
+				<legend>Export Data</legend>
+				<a id="download-geojson" style="text-decoration: none;"><button class="btn blue-btn">Download as GeoJSON</button></a>
+				<button class="btn blue-btn close-modal" id="download-shp">Download as Shapefile</button>
+				<button class="btn red-btn close-modal" id="delete-fc">Delete Layer</button>
+			</fieldset>
+			<button class="btn red-btn close-modal">Cancel</button>
+			<button class="btn green-btn" id="apply-settings">Apply Settings</button>
+		</div>
+	</div>
+</div>
+<!-- MODAL STYLE -->
+<div class="modal" id="style-modal">
+	<div class="modal-body">
+		<div class="modal-head"></div>
+		<div class="modal-content">
+			<div class="grid-container">
+				<div>
+					<label>Stroke Color</label><br>
+					<input class="color-picker" id="style-stroke-color" type="color">
+				</div>
+				<div>
+					<label>Stroke Width <strong id="style-stroke-width-value"></strong></label><br>
+					<input class="slider" id="style-stroke-width" type="range"  min=1 max=10>
+				</div>
+				<div>
+					<label>Fill Color</label><br>
+					<input class="color-picker" id="style-fill-color" type="color">
+				</div>
+				<div>
+					<label>Fill Opacity <b id="style-fill-opacity-value"></b></label><br>
+					<input class="slider" id="style-fill-opacity" type="range"  min=0 max=1 step=0.1>
+				</div>
+				<div></div>
+				<div>
+					<label>Circle Radius <b id="radius-value"></b></label><br>
+					<input class="slider" id="radius" type="range"  min=4 max=14>
+				</div>	
+			</div>
+			<button class="btn red-btn close-modal">Cancel</button>
+			<button class="btn green-btn" id="apply-style">Apply Style</button>
+		</div>
+	</div>
+</div>
+<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js" integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA==" crossorigin=""></script>
+<script src="https://unpkg.com/@geoman-io/leaflet-geoman-free@2.3.0/dist/leaflet-geoman.min.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>
